@@ -1,4 +1,4 @@
-module github.com/hnlq715/gg
+module github.com/hnlq715/gt
 
 go 1.20
 

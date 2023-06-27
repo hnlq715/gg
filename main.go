@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -22,8 +23,11 @@ func main() {
 	app.Usage = "Simple git repo clone tool with workspace support"
 	app.Action = func(c *cli.Context) error {
 		gitpath := c.Args().First()
-		parsedPath := lo.Must(url.Parse(gitpath))
+		if gitpath == "" {
+			return errors.New("empty git path is invalid")
+		}
 
+		parsedPath := lo.Must(url.Parse(gitpath))
 		clonePath := filepath.Join(
 			lo.Must(filepath.Abs(*workspace)), parsedPath.Host, parsedPath.Path)
 
