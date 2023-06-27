@@ -1,6 +1,12 @@
 # gg
 Simple git repo clone tool with workspace support
 
+## Install
+
+```
+go install github.com/hnlq715/gt@latest
+```
+
 ## Usage
 
 ```
