@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"log"
 	"net/url"
@@ -15,12 +14,17 @@ import (
 	"github.com/urfave/cli"
 )
 
-var workspace = flag.String("workspace", filepath.Join(lo.Must(os.UserHomeDir()), "workspace"), "workspace path")
-
 func main() {
 
 	app := cli.NewApp()
 	app.Usage = "Simple git repo clone tool with workspace support"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "workspace",
+			Value: filepath.Join(lo.Must(os.UserHomeDir()), "workspace"),
+			Usage: "workspace path",
+		},
+	}
 	app.Action = func(c *cli.Context) error {
 		gitpath := c.Args().First()
 		if gitpath == "" {
@@ -29,7 +33,7 @@ func main() {
 
 		parsedPath := lo.Must(url.Parse(gitpath))
 		clonePath := filepath.Join(
-			lo.Must(filepath.Abs(*workspace)), parsedPath.Host, parsedPath.Path)
+			lo.Must(filepath.Abs(c.String("workspace"))), parsedPath.Host, parsedPath.Path)
 
 		_, err := os.Stat(clonePath)
 		if os.IsNotExist(err) {
