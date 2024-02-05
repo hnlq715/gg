@@ -12,6 +12,7 @@ import (
 
 	"github.com/samber/lo"
 	"github.com/urfave/cli"
+	"gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -24,6 +25,11 @@ func main() {
 			Value: filepath.Join(lo.Must(os.UserHomeDir()), "workspace"),
 			Usage: "workspace path",
 		},
+		cli.StringFlag{
+			Name:  "config",
+			Value: filepath.Join(lo.Must(os.UserHomeDir()), ".gtconfig.yaml"),
+			Usage: "gt config for multiple gitconfig support",
+		},
 	}
 	app.Action = func(c *cli.Context) error {
 		gitpath := c.Args().First()
@@ -34,6 +40,18 @@ func main() {
 		parsedPath := lo.Must(url.Parse(gitpath))
 		clonePath := filepath.Join(
 			lo.Must(filepath.Abs(c.String("workspace"))), parsedPath.Host, parsedPath.Path)
+
+		out := new(config)
+		lo.Must0(yaml.Unmarshal(createOfGetConfig(c.String("config")), out))
+
+		if cfg, ok := lo.Find(out.GitConfig, func(c gitConfig) bool {
+			return c.Host == parsedPath.Host
+		}); ok {
+			fmt.Println("git", "config", "--local", "user.email", cfg.Email)
+			cmd := exec.Command("git", "config", "--local", "user.email", cfg.Email)
+			cmd.Dir = clonePath
+			lo.Must0(cmd.Run())
+		}
 
 		_, err := os.Stat(clonePath)
 		if os.IsNotExist(err) {
@@ -53,4 +71,31 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+type gitConfig struct {
+	Host  string
+	Email string
+}
+
+type config struct {
+	GitConfig []gitConfig
+}
+
+func createOfGetConfig(config string) []byte {
+	// if config file exists, read it
+	// if not, create it
+
+	if _, err := os.Stat(config); os.IsNotExist(err) {
+		// create config file
+		lo.Must0(os.WriteFile(config, []byte(""), 0644))
+	}
+
+	// read config file
+	data := lo.Must(os.ReadFile(config))
+	if len(data) == 0 {
+		return []byte("")
+	}
+
+	return data
 }
