@@ -44,6 +44,14 @@ func main() {
 		out := new(config)
 		lo.Must0(yaml.Unmarshal(createOfGetConfig(c.String("config")), out))
 
+		_, err := os.Stat(clonePath)
+		if os.IsNotExist(err) {
+			fmt.Println("git", "clone", gitpath, clonePath)
+			lo.Must0(exec.Command("git", "clone", gitpath, clonePath).Run())
+		} else {
+			fmt.Println(clonePath, "already exists")
+		}
+
 		if cfg, ok := lo.Find(out.GitConfig, func(c gitConfig) bool {
 			return c.Host == parsedPath.Host
 		}); ok {
@@ -51,14 +59,6 @@ func main() {
 			cmd := exec.Command("git", "config", "--local", "user.email", cfg.Email)
 			cmd.Dir = clonePath
 			lo.Must0(cmd.Run())
-		}
-
-		_, err := os.Stat(clonePath)
-		if os.IsNotExist(err) {
-			fmt.Println("git", "clone", gitpath, clonePath)
-			lo.Must0(exec.Command("git", "clone", gitpath, clonePath).Run())
-		} else {
-			fmt.Println(clonePath, "already exists")
 		}
 
 		return nil
