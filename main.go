@@ -47,7 +47,10 @@ func main() {
 		_, err := os.Stat(clonePath)
 		if os.IsNotExist(err) {
 			fmt.Println("git", "clone", gitpath, clonePath)
-			lo.Must0(exec.Command("git", "clone", gitpath, clonePath).Run())
+			cmd := exec.Command("git", "clone", gitpath, clonePath)
+			cmd.Stderr = os.Stderr
+			cmd.Stdout = os.Stdout
+			lo.Must0(cmd.Run())
 		} else {
 			fmt.Println(clonePath, "already exists")
 		}
