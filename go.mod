@@ -3,7 +3,7 @@ module github.com/hnlq715/gt
 go 1.20
 
 require (
-	github.com/samber/lo v1.46.0
+	github.com/samber/lo v1.47.0
 	github.com/urfave/cli v1.22.15
 	gopkg.in/yaml.v3 v3.0.1
 )
